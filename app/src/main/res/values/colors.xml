@@ -1,0 +1,13 @@
+<resources>
+
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="win">#dfffd6</color>
+    <color name="lose">#ffd6df</color>
+    <color name="colorAccent">#ffd6df</color>
+    <color name="colorPrimaryDark">#ffd6df</color>
+    <color name="colorPrimary">#ffd6df</color>
+
+
+
+</resources>

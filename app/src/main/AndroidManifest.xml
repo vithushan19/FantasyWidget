@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.cardillsports.fantasystats"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/emoji"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:installLocation="internalOnly"
+        android:theme="@style/AppTheme">
+        <receiver
+            android:icon="@drawable/emoji"
+            android:label="Vithushan Widget"
+            android:name="SimpleWidgetProvider" >
+            <intent-filter >
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.ACTION_WIDGET_RECEIVER"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/simple_widget_info" />
+        </receiver>
+
+        <activity android:name=".fantasyv.activity.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".fantasyv.activity.WebViewActivity"
+            android:label="@string/app_name" >
+        </activity>
+
+    </application>
+
+</manifest>
