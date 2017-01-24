@@ -6,19 +6,13 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.util.Log;
+import android.net.Uri;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
-import com.cardillsports.fantasystats.fantasyv.network.NetworkUtil;
+import com.cardillsports.fantasystats.fantasyv.service.WidgetService;
 
-import java.io.IOException;
 import java.util.Random;
-
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
-import oauth.signpost.exception.OAuthNotAuthorizedException;
 
 /**
  * Created by vithushan on 1/22/17.
@@ -27,11 +21,31 @@ import oauth.signpost.exception.OAuthNotAuthorizedException;
 public class SimpleWidgetProvider extends AppWidgetProvider {
 
     private static final String ACTION_CLICK = "ACTION_CLICK";
+    public static final String TOAST_ACTION = "com.example.android.stackwidget.TOAST_ACTION";
+    public static final String EXTRA_ITEM = "com.example.android.stackwidget.EXTRA_ITEM";
+
+
+    // Called when the BroadcastReceiver receives an Intent broadcast.
+    // Checks to see whether the intent's action is TOAST_ACTION. If it is, the app widget
+    // displays a Toast message for the current item.
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+        if (intent.getAction().equals(TOAST_ACTION)) {
+            int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                    AppWidgetManager.INVALID_APPWIDGET_ID);
+            int viewIndex = intent.getIntExtra(EXTRA_ITEM, 0);
+            Toast.makeText(context, "Touched view " + viewIndex, Toast.LENGTH_SHORT).show();
+
+            // Update the widget
+            ComponentName thisWidget = new ComponentName(context, SimpleWidgetProvider.class);
+            mgr.notifyAppWidgetViewDataChanged(mgr.getAppWidgetIds(thisWidget), R.id.stack_view);
+        }
+        super.onReceive(context, intent);
+    }
 
     @Override
-    public void onUpdate(final Context context, final AppWidgetManager appWidgetManager,
-                         final int[] appWidgetIds) {
-
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // Get all ids
         ComponentName thisWidget = new ComponentName(context, SimpleWidgetProvider.class);
 
@@ -41,48 +55,44 @@ public class SimpleWidgetProvider extends AppWidgetProvider {
             // create some random data
             final int number = (new Random().nextInt(100));
 
-            new AsyncTask<Void, Void, String>() {
+            // Set up the intent that starts the StackViewService, which will
+            // provide the views for this collection.
+            Intent intent = new Intent(context, WidgetService.class);
+            // Add the app widget ID to the intent extras.
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+            intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            // Instantiate the RemoteViews object for the app widget layout.
+            RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
+            // Set up the RemoteViews object to use a RemoteViews adapter.
+            // This adapter connects
+            // to a RemoteViewsService  through the specified intent.
+            // This is how you populate the data.
+            rv.setRemoteAdapter(widgetId, R.id.stack_view, intent);
 
-                @Override
-                protected String doInBackground(Void... voids) {
-                    String scoreboardString = "";
-                    try {
-                        scoreboardString = NetworkUtil.getInstance().getScoreboard("");
-                    } catch (OAuthMessageSignerException e) {
-                        e.printStackTrace();
-                    } catch (OAuthExpectationFailedException e) {
-                        e.printStackTrace();
-                    } catch (OAuthCommunicationException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (OAuthNotAuthorizedException e) {
-                        e.printStackTrace();
-                    }
+            // The empty view is displayed when the collection has no items.
+            // It should be in the same layout used to instantiate the RemoteViews
+            // object above.
+            rv.setEmptyView(R.id.stack_view, R.id.empty_view);
 
-                    return scoreboardString;
-                }
+            //
+            // Do additional processing specific to this app widget...
+            //
 
-                @Override
-                protected void onPostExecute(String scoreboardString) {
-                    RemoteViews remoteViews = new RemoteViews(context.getPackageName(),
-                            R.layout.widget_main);
-                    Log.w("WidgetExample", String.valueOf(number));
-                    // Set the text
-                    remoteViews.setTextViewText(R.id.textView, String.valueOf(scoreboardString));
+            // Here we setup the a pending intent template. Individuals items of a collection
+            // cannot setup their own pending intents, instead, the collection as a whole can
+            // setup a pending intent template, and the individual items can set a fillInIntent
+            // to create unique before on an item to item basis.
+            Intent toastIntent = new Intent(context, SimpleWidgetProvider.class);
+            toastIntent.setAction(SimpleWidgetProvider.TOAST_ACTION);
+            toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+            intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+            rv.setPendingIntentTemplate(R.id.stack_view, toastPendingIntent);
 
-                    // Register an onClickListener
-                    Intent intent = new Intent(context, SimpleWidgetProvider.class);
+            appWidgetManager.updateAppWidget(widgetId, rv);
 
-                    intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
-
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                            0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    remoteViews.setOnClickPendingIntent(R.id.actionButton, pendingIntent);
-                    appWidgetManager.updateAppWidget(widgetId, remoteViews);
-                }
-            }.execute();
         }
+        super.onUpdate(context, appWidgetManager, appWidgetIds);
     }
 }

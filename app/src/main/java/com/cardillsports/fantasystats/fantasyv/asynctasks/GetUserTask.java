@@ -2,8 +2,7 @@ package com.cardillsports.fantasystats.fantasyv.asynctasks;
 
 import android.os.AsyncTask;
 
-import com.cardillsports.fantasystats.fantasyv.model.Scoreboard;
-import com.cardillsports.fantasystats.fantasyv.model.ScoreboardHandler;
+import com.cardillsports.fantasystats.fantasyv.model.User;
 import com.cardillsports.fantasystats.fantasyv.network.NetworkUtil;
 
 import java.io.IOException;
@@ -17,23 +16,18 @@ import oauth.signpost.exception.OAuthNotAuthorizedException;
  * Created by vithushan on 1/23/17.
  */
 
-public class GetScoreboardTask extends AsyncTask<Void, Void, Scoreboard> {
+public class GetUserTask extends AsyncTask<Void, Void, User> {
 
     private final String mVerifierUrl;
-    private final ScoreboardHandler mHandler;
-    private final String mLeagueKey;
 
-
-    public GetScoreboardTask(ScoreboardHandler handler, String verifierUrl, String leagueKey) {
-        mHandler = handler;
+    public GetUserTask(String verifierUrl) {
         mVerifierUrl = verifierUrl;
-        mLeagueKey = leagueKey;
     }
 
     @Override
-    protected Scoreboard doInBackground(Void... voids) {
+    protected User doInBackground(Void... voids) {
         try {
-            return NetworkUtil.getInstance().getScoreboard(mVerifierUrl, mLeagueKey);
+            return NetworkUtil.getInstance().getUser(mVerifierUrl);
         } catch (OAuthMessageSignerException e) {
             e.printStackTrace();
         } catch (OAuthExpectationFailedException e) {
@@ -49,7 +43,7 @@ public class GetScoreboardTask extends AsyncTask<Void, Void, Scoreboard> {
     }
 
     @Override
-    protected void onPostExecute(Scoreboard scoreboard) {
-        mHandler.handleScoreboard(scoreboard);
+    protected void onPostExecute(User result) {
+        System.out.println(result.userTeamList.get(0).teamName);
     }
 }

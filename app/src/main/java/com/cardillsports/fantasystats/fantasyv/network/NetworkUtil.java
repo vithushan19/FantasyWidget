@@ -3,6 +3,11 @@ package com.cardillsports.fantasystats.fantasyv.network;
 import android.net.Uri;
 import android.util.Log;
 
+import com.cardillsports.fantasystats.fantasyv.model.Scoreboard;
+import com.cardillsports.fantasystats.fantasyv.model.User;
+
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.net.URL;
 
@@ -35,7 +40,8 @@ public class NetworkUtil {
 	private static final String YAHOO_CONSUMER_KEY = "dj0yJmk9SG1OeGxuQUhCdWxKJmQ9WVdrOVdGWkJOSEJDTldFbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1lNw--";
 	private static final String YAHOO_CONSUMER_SECRET = "8e6b6c1e5f2d1f4e3b4fd74d428ae38c7a02a8e9";
 
-    private static final String YAHOO_SCOREBOARD_URL = "http://fantasysports.yahooapis.com/fantasy/v2/league/364.l.49207/scoreboard?format=json";
+    private static final String YAHOO_SCOREBOARD_URL = "http://fantasysports.yahooapis.com/fantasy/v2/league/%s/scoreboard?format=json";
+    private static final String YAHOO_GAMES_URL = "http://fantasysports.yahooapis.com/fantasy/v2/users;use_login=1/games/teams?is_available=1&format=json";
 
 	private static final String TAG = "NetworkUtil";
 
@@ -69,14 +75,44 @@ public class NetworkUtil {
 		mainProvider.retrieveAccessToken(mainConsumer, oAuthVerifier);
 	}
 
-	public String getScoreboard(String verifierURL) throws OAuthMessageSignerException,
-			OAuthExpectationFailedException, OAuthCommunicationException, IOException, OAuthNotAuthorizedException {
+    public User getUser(String verifierURL) throws OAuthMessageSignerException,
+            OAuthExpectationFailedException, OAuthCommunicationException,
+            IOException, OAuthNotAuthorizedException {
 
         if (!verifierURL.equals("")) {
             getAccessToken(verifierURL);
         }
 
-		URL url = new URL(YAHOO_SCOREBOARD_URL);
+        URL url = new URL(YAHOO_GAMES_URL);
+        OAuthConsumer consumer = mainConsumer;
+
+        Request request2 = new Request.Builder().url(url).build();
+        consumer.sign(request2);
+
+        Call call = client.newCall(request2);
+        Response response = call.execute();
+
+        String responseBody = new String(response.body().bytes(), "UTF-8");
+
+        try {
+            return JsonParser.createUser(responseBody);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public Scoreboard getScoreboard(String verifierURL, String leagueKey) throws OAuthMessageSignerException,
+            OAuthExpectationFailedException, OAuthCommunicationException,
+            IOException, OAuthNotAuthorizedException {
+
+        if (!verifierURL.equals("")) {
+            getAccessToken(verifierURL);
+        }
+
+        String scoreboardUrl = String.format(YAHOO_SCOREBOARD_URL, leagueKey);
+		URL url = new URL(scoreboardUrl);
 		OAuthConsumer consumer = mainConsumer;
 
         Request request2 = new Request.Builder().url(url).build();
@@ -85,10 +121,16 @@ public class NetworkUtil {
         Call call = client.newCall(request2);
         Response response = call.execute();
 
-        //TODO parse into java object
         String responseBody = new String(response.body().bytes(), "UTF-8");
 
-        return responseBody;
+        Scoreboard scoreboard = null;
+        try {
+            scoreboard = JsonParser.createScoreboard(responseBody);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return scoreboard;
 	}
 
 
@@ -140,4 +182,6 @@ public class NetworkUtil {
                 "xoauth_yahoo_guid") + "<br>";
         Log.i("YahooScreen", "str : " + str);
     }
+
+
 }

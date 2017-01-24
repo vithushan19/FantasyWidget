@@ -1,11 +1,8 @@
 package com.cardillsports.fantasystats.fantasyv.asynctasks;
 
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 
-import com.cardillsports.fantasystats.fantasyv.activity.WebViewActivity;
+import com.cardillsports.fantasystats.fantasyv.model.RequestTokenHandler;
 import com.cardillsports.fantasystats.fantasyv.network.NetworkUtil;
 
 import oauth.signpost.exception.OAuthCommunicationException;
@@ -22,12 +19,12 @@ import oauth.signpost.exception.OAuthNotAuthorizedException;
  * to create a url for the user to navigate to, in order to authorize
  * our application. In post excecute we pop open a webview with that URL
  */
-public class LoginTask extends AsyncTask<Void, Void, String> {
+public class GetRequestTokenTask extends AsyncTask<Void, Void, String> {
 
-    private final Context mContext;
+    private final RequestTokenHandler mRequestTokenHandler;
 
-    public LoginTask(Context context) {
-        mContext = context;
+    public GetRequestTokenTask(RequestTokenHandler requestTokenHandler) {
+        mRequestTokenHandler = requestTokenHandler;
     }
 
     @Override
@@ -48,8 +45,6 @@ public class LoginTask extends AsyncTask<Void, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        Intent intent = new Intent(mContext, WebViewActivity.class);
-        intent.setData(Uri.parse(result));
-        mContext.startActivity(intent);
+        mRequestTokenHandler.handleRequestToken(result);
     }
 }

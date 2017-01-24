@@ -1,19 +1,18 @@
 package com.cardillsports.fantasystats.fantasyv.model;
 
-import com.squareup.moshi.Json;
+import java.util.List;
 
 /**
- * Created by vithushan on 1/22/17.
+ * Created by vithushan on 1/23/17.
  */
 
 public class Scoreboard {
-    public final String week;
 
-    @Json(name = "0")
-    public final ScoreboardWeek scoreboardWeek;
+    public final int week;
+    public final List<Matchup> matchupList;
 
-    public Scoreboard(String week, ScoreboardWeek scoreboardWeek) {
+    public Scoreboard(int week, List<Matchup> matchupList) {
         this.week = week;
-        this.scoreboardWeek = scoreboardWeek;
+        this.matchupList = matchupList;
     }
 }

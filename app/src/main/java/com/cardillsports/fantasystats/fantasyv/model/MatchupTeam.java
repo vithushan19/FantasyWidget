@@ -1,12 +1,15 @@
 package com.cardillsports.fantasystats.fantasyv.model;
 
 /**
- * Created by vithushan on 1/22/17.
+ * Created by vithushan on 1/23/17.
  */
-public class MatchupTeam {
-    public final MatchupTeamHolder team;
 
-    public MatchupTeam(MatchupTeamHolder team) {
-        this.team = team;
+public class MatchupTeam {
+    public final int score;
+    public final String name;
+
+    public MatchupTeam(int score, String name) {
+        this.score = score;
+        this.name = name;
     }
 }
